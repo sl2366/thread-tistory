@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>티스토리 스레드 생성기</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #f2f2f2;
+  min-height: 100vh;
+  display: flex;
+}
+
+.editor {
+  width: 460px;
+  min-width: 460px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  border-right: 1px solid #e0e0e0;
+}
+
+.editor-header {
+  padding: 20px 22px 14px;
+  border-bottom: 1px solid #eee;
+  flex-shrink: 0;
+}
+.editor-header h1 { font-size: 17px; font-weight: 700; color: #111; }
+.editor-header p  { font-size: 12px; color: #999; margin-top: 3px; }
+
+.editor-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 22px;
+}
+
+.sec-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #777;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  margin-top: 20px;
+}
+.sec-label:first-child { margin-top: 0; }
+
+input[type=text], input[type=url], textarea {
+  width: 100%;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  background: #fafafa;
+  color: #111;
+  outline: none;
+  transition: border-color .15s;
+}
+input[type=text]:focus, input[type=url]:focus, textarea:focus {
+  border-color: #555;
+  background: #fff;
+}
+
+.row2 { display: flex; gap: 8px; }
+.row2 > * { flex: 1; }
+
+.posts { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+
+.post-block {
+  border: 1px solid #e8e8e8;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fafafa;
+}
+
+.post-block-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #f5f5f5;
+  border-bottom: 1px solid #ececec;
+}
+
+.post-num { font-size: 11px; font-weight: 700; color: #999; min-width: 22px; }
+
+.post-preview-text {
+  flex: 1;
+  font-size: 13px;
+  color: #555;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.post-del {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  color: #ccc;
+  padding: 2px 4px;
+  border-radius: 4px;
+  line-height: 1;
+  transition: color .15s;
+}
+.post-del:hover { color: #e53935; }
+
+.post-block-body { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+
+.type-tabs { display: flex; gap: 6px; }
+.type-tab {
+  flex: 1;
+  padding: 7px 0;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 7px;
+  background: none;
+  font-size: 12px;
+  font-family: inherit;
+  color: #888;
+  cursor: pointer;
+  transition: all .15s;
+  text-align: center;
+}
+.type-tab.active { border-color: #111; background: #111; color: #fff; }
+
+.type-section { display: none; }
+.type-section.active { display: block; }
+
+textarea.post-text { min-height: 90px; resize: vertical; line-height: 1.6; }
+
+.img-list { display: flex; flex-direction: column; gap: 6px; }
+.img-row { display: flex; gap: 6px; align-items: center; }
+.img-row input { flex: 1; }
+.img-row-del {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #ccc;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color .15s;
+}
+.img-row-del:hover { color: #e53935; }
+
+.add-img-btn {
+  border: 1.5px dashed #ddd;
+  background: none;
+  border-radius: 7px;
+  padding: 7px;
+  font-size: 12px;
+  color: #aaa;
+  cursor: pointer;
+  width: 100%;
+  font-family: inherit;
+  transition: all .15s;
+  margin-top: 2px;
+}
+.add-img-btn:hover { border-color: #888; color: #555; }
+
+.spoiler-fields { display: flex; flex-direction: column; gap: 8px; }
+
+.add-post-btn {
+  border: 1.5px dashed #ccc;
+  background: none;
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 13px;
+  color: #aaa;
+  cursor: pointer;
+  width: 100%;
+  font-family: inherit;
+  transition: all .15s;
+  margin-top: 4px;
+}
+.add-post-btn:hover { border-color: #555; color: #555; }
+
+.editor-footer {
+  padding: 14px 22px;
+  border-top: 1px solid #eee;
+  background: #fff;
+  flex-shrink: 0;
+  display: flex;
+  gap: 8px;
+}
+.foot-btn {
+  flex: 1;
+  padding: 11px;
+  border: none;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .15s;
+}
+.foot-btn.primary   { background: #111; color: #fff; }
+.foot-btn.primary:hover { background: #333; }
+.foot-btn.secondary { background: #f0f0f0; color: #444; }
+.foot-btn.secondary:hover { background: #e0e0e0; }
+
+.toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%) translateY(12px);
+  background: #111;
+  color: #fff;
+  padding: 9px 20px;
+  border-radius: 20px;
+  font-size: 14px;
+  opacity: 0;
+  pointer-events: none;
+  transition: all .22s;
+  z-index: 9999;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── 미리보기 ── */
+.preview-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.preview-header {
+  padding: 14px 22px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #999;
+  background: #f2f2f2;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+}
+
+.preview-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+/* 티스토리 스킨 시뮬레이션 */
+.sim-wrap {
+  max-width: 700px;
+  margin: 0 auto;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.sim-items { display: grid; gap: 12px; }
+
+.sim-item {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.sim-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid rgba(0,0,0,.1);
+  background: #f0f0f0;
+  flex-shrink: 0;
+}
+.sim-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.sim-card {
+  position: relative;
+  padding: 12px 0 calc(36px + 12px);
+  border-bottom: 1px solid rgba(0,0,0,.12);
+}
+
+.sim-top { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+.sim-name { font-weight: 800; font-size: 15px; }
+.sim-handle { color: rgba(0,0,0,.45); font-size: 14px; }
+
+.sim-content { font-size: 15px; line-height: 1.48; word-break: break-word; white-space: pre-wrap; margin-bottom: 0; }
+
+.sim-media { margin-top: 10px; display: grid; gap: 10px; }
+.sim-media.grid2 { grid-template-columns: 1fr 1fr; }
+.sim-media img { width: 100%; border-radius: 14px; border: 1px solid rgba(0,0,0,.1); display: block; }
+
+.sim-spoiler {
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px dashed rgba(0,0,0,.18);
+  border-radius: 10px;
+}
+.sim-spoiler-toggle {
+  display: inline-block;
+  margin-bottom: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,.12);
+  background: rgba(0,0,0,.03);
+  font-size: 13px;
+  cursor: pointer;
+}
+.sim-spoiler-body { font-size: 15px; line-height: 1.48; white-space: pre-wrap; }
+.sim-spoiler-body.blurred { filter: blur(8px); user-select: none; }
+
+.sim-like {
+  position: absolute;
+  right: 0;
+  bottom: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 3px 6px;
+}
+
+.sim-empty { text-align: center; padding: 60px 0; color: #bbb; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<div class="editor">
+  <div class="editor-header">
+    <h1>🧵 스레드 생성기</h1>
+    <p>작성 → 복사 → 티스토리 HTML 편집기에 붙여넣기</p>
+  </div>
+
+  <div class="editor-body">
+
+    <div class="sec-label">프로필 (전체 포스트 공통)</div>
+    <div class="row2" style="margin-bottom:8px;">
+      <input type="text" id="cfgName"   placeholder="이름" value="">
+      <input type="text" id="cfgHandle" placeholder="@handle (선택)" value="">
+    </div>
+    <input type="url" id="cfgAvatar" placeholder="아바타 이미지 URL (선택)" style="margin-bottom:4px;">
+    <div style="font-size:11px;color:#bbb;margin-bottom:2px;">스킨 JS에서 자동 주입되도록 설정해둔 경우 비워도 됩니다.</div>
+
+    <div class="sec-label">Thread ID</div>
+    <input type="text" id="cfgThreadId" placeholder="예: post-240325" value="thread-001" style="margin-bottom:4px;">
+    <div style="font-size:11px;color:#bbb;">data-thread-id 속성값 — 한 페이지에 여러 스레드를 쓸 때 구분용</div>
+
+    <div class="sec-label" style="margin-top:20px;">포스트 목록</div>
+    <div class="posts" id="postList"></div>
+    <button class="add-post-btn" onclick="addPost()">＋ 포스트 추가</button>
+
+  </div>
+
+  <div class="editor-footer">
+    <button class="foot-btn secondary" onclick="copySection()">섹션만 복사</button>
+    <button class="foot-btn primary"   onclick="copyFull()">전체 HTML 복사</button>
+  </div>
+</div>
+
+<div class="preview-panel">
+  <div class="preview-header">
+    <span>미리보기</span>
+    <span id="postCount">포스트 0개</span>
+  </div>
+  <div class="preview-scroll">
+    <div class="sim-wrap">
+      <div class="sim-items" id="simItems">
+        <div class="sim-empty">포스트를 추가해 주세요.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let posts = [];
+let uid = 0;
+
+['cfgName','cfgHandle','cfgAvatar','cfgThreadId'].forEach(id =>
+  document.getElementById(id).addEventListener('input', renderPreview)
+);
+
+addPost();
+
+/* ── CRUD ── */
+function addPost() {
+  const id = ++uid;
+  posts.push({ id, type:'text', text:'', imgs:[''], spoilerLabel:'⚠ 스포일러 보기', spoilerBody:'' });
+  renderEditor();
+  renderPreview();
+  setTimeout(() => {
+    const el = document.querySelector('[data-pid="' + id + '"] textarea');
+    if (el) { el.scrollIntoView({ behavior:'smooth', block:'center' }); el.focus(); }
+  }, 60);
+}
+
+function removePost(id) {
+  posts = posts.filter(p => p.id !== id);
+  renderEditor(); renderPreview();
+}
+
+function setType(id, type) {
+  const p = posts.find(p => p.id === id);
+  if (p) p.type = type;
+  renderEditor(); renderPreview();
+}
+
+function onField(id, field, val) {
+  const p = posts.find(p => p.id === id);
+  if (p) p[field] = val;
+  renderPreview();
+  const hdr = document.querySelector('[data-pid="' + id + '"] .post-preview-text');
+  if (hdr) hdr.textContent = previewLine(p);
+}
+
+function addImg(id) {
+  const p = posts.find(p => p.id === id);
+  if (p) { p.imgs.push(''); renderEditor(); }
+}
+
+function removeImg(id, idx) {
+  const p = posts.find(p => p.id === id);
+  if (p && p.imgs.length > 1) { p.imgs.splice(idx, 1); renderEditor(); renderPreview(); }
+}
+
+function onImg(id, idx, val) {
+  const p = posts.find(p => p.id === id);
+  if (p) { p.imgs[idx] = val; renderPreview(); }
+}
+
+function previewLine(p) {
+  if (!p) return '';
+  if (p.type === 'text')    return p.text.slice(0,42) || '(비어있음)';
+  if (p.type === 'image')   return '이미지 ' + p.imgs.filter(Boolean).length + '개' + (p.text?' + 텍스트':'');
+  if (p.type === 'spoiler') return '스포일러' + (p.text?' + 텍스트':'');
+  return '';
+}
+
+/* ── Editor Render ── */
+function renderEditor() {
+  const list = document.getElementById('postList');
+  list.innerHTML = '';
+  posts.forEach((p, i) => {
+    const div = document.createElement('div');
+    div.className = 'post-block';
+    div.dataset.pid = p.id;
+
+    const imgRows = p.imgs.map((url, idx) =>
+      `<div class="img-row">
+        <input type="url" placeholder="https://..." value="${x(url)}"
+          oninput="onImg(${p.id},${idx},this.value)">
+        <button class="img-row-del" onclick="removeImg(${p.id},${idx})">✕</button>
+      </div>`
+    ).join('');
+
+    div.innerHTML = `
+      <div class="post-block-header">
+        <span class="post-num">#${i+1}</span>
+        <span class="post-preview-text">${previewLine(p)}</span>
+        <button class="post-del" onclick="removePost(${p.id})">✕</button>
+      </div>
+      <div class="post-block-body">
+        <div class="type-tabs">
+          <button class="type-tab ${p.type==='text'?'active':''}"    onclick="setType(${p.id},'text')">텍스트</button>
+          <button class="type-tab ${p.type==='image'?'active':''}"   onclick="setType(${p.id},'image')">이미지</button>
+          <button class="type-tab ${p.type==='spoiler'?'active':''}" onclick="setType(${p.id},'spoiler')">스포일러</button>
+        </div>
+
+        <div class="type-section ${p.type==='text'?'active':''}">
+          <textarea class="post-text" placeholder="본문 텍스트를 입력하세요..."
+            oninput="onField(${p.id},'text',this.value)">${x(p.text)}</textarea>
+        </div>
+
+        <div class="type-section ${p.type==='image'?'active':''}">
+          <textarea class="post-text" placeholder="이미지 위 텍스트 (선택)"
+            oninput="onField(${p.id},'text',this.value)" style="min-height:60px;">${x(p.text)}</textarea>
+          <div style="margin-top:8px;">
+            <div style="font-size:11px;color:#bbb;margin-bottom:6px;">이미지 URL — 2개 입력 시 2열 그리드</div>
+            <div class="img-list">${imgRows}</div>
+            <button class="add-img-btn" onclick="addImg(${p.id})">＋ 이미지 URL 추가</button>
+          </div>
+        </div>
+
+        <div class="type-section ${p.type==='spoiler'?'active':''}">
+          <textarea class="post-text" placeholder="스포일러 앞 텍스트 (선택)"
+            oninput="onField(${p.id},'text',this.value)" style="min-height:60px;">${x(p.text)}</textarea>
+          <div class="spoiler-fields" style="margin-top:8px;">
+            <input type="text" placeholder="토글 버튼 문구" value="${x(p.spoilerLabel)}"
+              oninput="onField(${p.id},'spoilerLabel',this.value)">
+            <textarea class="post-text" placeholder="스포일러 내용..."
+              oninput="onField(${p.id},'spoilerBody',this.value)">${x(p.spoilerBody)}</textarea>
+          </div>
+        </div>
+
+      </div>`;
+    list.appendChild(div);
+  });
+  document.getElementById('postCount').textContent = `포스트 ${posts.length}개`;
+}
+
+/* ── Preview Render ── */
+function renderPreview() {
+  const name   = document.getElementById('cfgName').value.trim();
+  const handle = document.getElementById('cfgHandle').value.trim();
+  const avatar = document.getElementById('cfgAvatar').value.trim();
+  const handleText = handle ? (handle.startsWith('@') ? handle : '@'+handle) : '';
+
+  const simAvatar = avatar
+    ? `<div class="sim-avatar"><img src="${x(avatar)}" alt=""></div>`
+    : `<div class="sim-avatar"></div>`;
+
+  const container = document.getElementById('simItems');
+  if (posts.length === 0) {
+    container.innerHTML = '<div class="sim-empty">포스트를 추가해 주세요.</div>';
+    return;
+  }
+
+  container.innerHTML = posts.map(p => {
+    let body = '';
+    if (p.text.trim()) body += `<p class="sim-content">${x(p.text)}</p>`;
+
+    if (p.type === 'image') {
+      const imgs = p.imgs.filter(Boolean);
+      if (imgs.length) {
+        body += `<div class="sim-media ${imgs.length>=2?'grid2':''}">
+          ${imgs.map(u=>`<img src="${x(u)}" alt="" loading="lazy">`).join('')}
+        </div>`;
+      }
+    }
+    if (p.type === 'spoiler') {
+      body += `<div class="sim-spoiler">
+        <span class="sim-spoiler-toggle">${x(p.spoilerLabel||'⚠ 스포일러 보기')}</span>
+        <div class="sim-spoiler-body blurred">${x(p.spoilerBody)}</div>
+      </div>`;
+    }
+
+    return `<div class="sim-item">
+      ${simAvatar}
+      <div class="sim-card">
+        <div class="sim-top">
+          <span class="sim-name">${x(name)||'이름'}</span>
+          ${handleText?`<span class="sim-handle">${x(handleText)}</span>`:''}
+        </div>
+        ${body}
+        <button class="sim-like">🤍</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ── HTML Generation ── */
+function buildArticle(p, name, handleText, avatar) {
+  const avatarSrc = avatar || '';
+  let body = '';
+
+  if (p.text.trim()) {
+    body += `\n        <p class="thread-item__content">\n          ${xe(p.text)}\n        </p>`;
+  }
+
+  if (p.type === 'image') {
+    const imgs = p.imgs.filter(Boolean);
+    if (imgs.length) {
+      const gc = imgs.length >= 2 ? ' is-grid-2' : '';
+      body += `\n        <div class="thread-item__media${gc}">
+          ${imgs.map(u=>`<img src="${xe(u)}" alt="" loading="lazy">`).join('\n          ')}
+        </div>`;
+    }
+  }
+
+  if (p.type === 'spoiler') {
+    body += `\n        <div class="thread-spoiler is-hidden">
+          <button class="thread-spoiler__toggle" type="button">
+            ${xe(p.spoilerLabel||'⚠ 스포일러 보기')}
+          </button>
+          <div class="thread-spoiler__body">
+            <p class="thread-item__content">
+              ${xe(p.spoilerBody)}
+            </p>
+          </div>
+        </div>`;
+  }
+
+  return `
+    <!-- 포스트 -->
+    <article class="thread-item">
+      <img class="thread-item__avatar" src="${xe(avatarSrc)}" alt="">
+      <div class="thread-item__card">
+
+        <div class="thread-item__top">
+          <div class="thread-item__meta">
+            <span class="thread-item__name">${xe(name)}</span>
+            <span class="thread-item__handle">${xe(handleText)}</span>
+          </div>
+        </div>
+${body}
+
+        <div class="thread-item__actions">
+          <button class="thread-like" aria-pressed="false">Like</button>
+        </div>
+
+      </div>
+    </article>`;
+}
+
+function buildSection() {
+  const name     = document.getElementById('cfgName').value.trim();
+  const handle   = document.getElementById('cfgHandle').value.trim();
+  const avatar   = document.getElementById('cfgAvatar').value.trim();
+  const threadId = document.getElementById('cfgThreadId').value.trim() || 'thread-001';
+  const handleText = handle ? (handle.startsWith('@') ? handle : '@'+handle) : '';
+
+  const articles = posts.map(p => buildArticle(p, name, handleText, avatar)).join('\n');
+
+  return `<section class="thread" data-thread-id="${xe(threadId)}">
+  <div class="thread__items">
+${articles}
+  </div>
+</section>`;
+}
+
+function copySection() {
+  navigator.clipboard.writeText(buildSection())
+    .then(() => showToast('섹션 HTML이 복사되었습니다!'));
+}
+
+function copyFull() {
+  const section = buildSection();
+  const js = `\n<script>\ndocument.querySelectorAll('.thread-spoiler__toggle').forEach(btn => {\n  btn.addEventListener('click', () => btn.closest('.thread-spoiler').classList.toggle('is-hidden'));\n});\ndocument.querySelectorAll('.thread-like').forEach(btn => {\n  btn.addEventListener('click', () => {\n    const on = btn.getAttribute('aria-pressed') === 'true';\n    btn.setAttribute('aria-pressed', String(!on));\n  });\n});\n<\/script>`;
+  const full = `<!DOCTYPE html>\n<html lang="ko">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>스레드</title>\n</head>\n<body>\n${section}\n${js}\n</body>\n</html>`;
+  navigator.clipboard.writeText(full)
+    .then(() => showToast('전체 HTML이 복사되었습니다!'));
+}
+
+/* ── Utils ── */
+function x(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function xe(s) { return x(s); }
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = '✅ ' + msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+renderEditor();
+renderPreview();
+</script>
+</body>
+</html>
