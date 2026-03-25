@@ -549,6 +549,17 @@ function renderPreview() {
       </div>
     </div>`;
   }).join('');
+
+  container.querySelectorAll('.sim-spoiler-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.closest('.sim-spoiler').querySelector('.sim-spoiler-body').classList.toggle('blurred');
+    });
+  });
+  container.querySelectorAll('.sim-like').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.textContent = btn.textContent === '🤍' ? '🦇' : '🤍';
+    });
+  });
 }
 
 /* ── HTML Generation ── */
@@ -572,7 +583,7 @@ function buildArticle(p, name, handleText, avatar) {
 
   if (p.type === 'spoiler') {
     body += `\n        <div class="thread-spoiler is-hidden">
-          <button class="thread-spoiler__toggle" type="button">
+          <button class="thread-spoiler__toggle" type="button" onclick="this.closest('.thread-spoiler').classList.toggle('is-hidden')">
             ${xe(p.spoilerLabel||'⚠ 스포일러 보기')}
           </button>
           <div class="thread-spoiler__body">
@@ -598,7 +609,7 @@ function buildArticle(p, name, handleText, avatar) {
 ${body}
 
         <div class="thread-item__actions">
-          <button class="thread-like" aria-pressed="false">Like</button>
+          <button class="thread-like" aria-pressed="false" onclick="this.setAttribute('aria-pressed',String(this.getAttribute('aria-pressed')!=='true'))">Like</button>
         </div>
 
       </div>
@@ -628,7 +639,8 @@ function copySection() {
 
 function copyFull() {
   const section = buildSection();
-  const js = `\n<script>\ndocument.querySelectorAll('.thread-spoiler__toggle').forEach(btn => {\n  btn.addEventListener('click', () => btn.closest('.thread-spoiler').classList.toggle('is-hidden'));\n});\ndocument.querySelectorAll('.thread-like').forEach(btn => {\n  btn.addEventListener('click', () => {\n    const on = btn.getAttribute('aria-pressed') === 'true';\n    btn.setAttribute('aria-pressed', String(!on));\n  });\n});\n<\/script>`;
+  const closeScript = '</' + 'script>';
+  const js = `\n<script>\ndocument.querySelectorAll('.thread-spoiler__toggle').forEach(btn => {\n  btn.addEventListener('click', () => btn.closest('.thread-spoiler').classList.toggle('is-hidden'));\n});\ndocument.querySelectorAll('.thread-like').forEach(btn => {\n  btn.addEventListener('click', () => {\n    const on = btn.getAttribute('aria-pressed') === 'true';\n    btn.setAttribute('aria-pressed', String(!on));\n  });\n});\n${closeScript}`;
   const full = `<!DOCTYPE html>\n<html lang="ko">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>스레드</title>\n</head>\n<body>\n${section}\n${js}\n</body>\n</html>`;
   navigator.clipboard.writeText(full)
     .then(() => showToast('전체 HTML이 복사되었습니다!'));
