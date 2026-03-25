@@ -571,7 +571,7 @@ function buildArticle(p, name, handleText, avatar) {
   }
 
   if (p.type === 'spoiler') {
-    body += `\n        <div class="thread-spoiler is-hidden">
+    body += `\n        <div class="thread-spoiler">
           <button class="thread-spoiler__toggle" type="button">
             ${xe(p.spoilerLabel||'⚠ 스포일러 보기')}
           </button>
