@@ -549,6 +549,17 @@ function renderPreview() {
       </div>
     </div>`;
   }).join('');
+
+  container.querySelectorAll('.sim-spoiler-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.closest('.sim-spoiler').querySelector('.sim-spoiler-body').classList.toggle('blurred');
+    });
+  });
+  container.querySelectorAll('.sim-like').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.textContent = btn.textContent === '🤍' ? '🦇' : '🤍';
+    });
+  });
 }
 
 /* ── HTML Generation ── */
@@ -572,7 +583,7 @@ function buildArticle(p, name, handleText, avatar) {
 
   if (p.type === 'spoiler') {
     body += `\n        <div class="thread-spoiler is-hidden">
-          <button class="thread-spoiler__toggle" type="button">
+          <button class="thread-spoiler__toggle" type="button" onclick="this.closest('.thread-spoiler').classList.toggle('is-hidden')">
             ${xe(p.spoilerLabel||'⚠ 스포일러 보기')}
           </button>
           <div class="thread-spoiler__body">
@@ -598,7 +609,7 @@ function buildArticle(p, name, handleText, avatar) {
 ${body}
 
         <div class="thread-item__actions">
-          <button class="thread-like" aria-pressed="false">Like</button>
+          <button class="thread-like" aria-pressed="false" onclick="this.setAttribute('aria-pressed',String(this.getAttribute('aria-pressed')!=='true'))">Like</button>
         </div>
 
       </div>
