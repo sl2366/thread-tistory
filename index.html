@@ -628,8 +628,7 @@ function copySection() {
 
 function copyFull() {
   const section = buildSection();
-  const js = `\n<script>\ndocument.querySelectorAll('.thread-spoiler__toggle').forEach(btn => {\n  btn.addEventListener('click', () => btn.closest('.thread-spoiler').classList.toggle('is-hidden'));\n});\ndocument.querySelectorAll('.thread-like').forEach(btn => {\n  btn.addEventListener('click', () => {\n    const on = btn.getAttribute('aria-pressed') === 'true';\n    btn.setAttribute('aria-pressed', String(!on));\n  });\n});\n<\/script>`;
-  const full = `<!DOCTYPE html>\n<html lang="ko">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>스레드</title>\n</head>\n<body>\n${section}\n${js}\n</body>\n</html>`;
+  const full = `<!DOCTYPE html>\n<html lang="ko">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>스레드</title>\n</head>\n<body>\n${section}\n</body>\n</html>`;
   navigator.clipboard.writeText(full)
     .then(() => showToast('전체 HTML이 복사되었습니다!'));
 }
